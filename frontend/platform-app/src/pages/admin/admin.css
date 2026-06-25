@@ -1,0 +1,31 @@
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-menu {
+    width: 220px;
+    background: #f5f5f5;
+    padding: 24px 0;
+}
+
+.admin-menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+.admin-menu li {
+    margin-bottom: 16px;
+}
+
+.admin-menu a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 32px;
+    background: #fff;
+}
