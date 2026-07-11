@@ -6,8 +6,8 @@ const app = express();
 const { GetManh1DBPool } = require('./src/config/DBConnection')
 const corsOptions = {
     origin: function (origin, callback) {
-        // Cho phép các request không có origin (như Postman) hoặc từ localhost:5173
-        const allowedOrigins = ['http://localhost:5173', 'http://192.168.1.10:3000', 'http://192.168.195.89:5173', 'http://127.0.0.1:5173', 'http://localhost:3000', 'http://192.168.1.10:5173', 'http://192.168.195.89:5173'];
+        // Cho phép các request không có origin (như Postman) hoặc từ localhost:5174
+        const allowedOrigins = ['http://localhost:5174', 'http://localhost:5173', 'http://192.168.1.10:3000', 'http://192.168.195.89:5174', 'http://127.0.0.1:5174', 'http://localhost:3000', 'http://192.168.1.10:5174', 'http://192.168.195.89:5173'];
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -35,8 +35,11 @@ GetManh1DBPool().then(() => console.log("Manh 1 ok")).catch(console.error("Het c
 app.use('/login', require('./src/APIs/Login'))
 app.use('/admin', require("./src/APIs/categories"))
 app.use('/admin', require("./src/APIs/product"))
-
-
+app.use('/price', require("./src/APIs/priceTable"))
+app.use('/admin', require("./src/APIs/voucher"))
+app.use('/cache', require("./src/APIs/getCache"))
+app.use('/delivery', require("./src/APIs/offer"))
+app.use('/customer', require("./src/APIs/cart"))
 
 const PORT = process.env.port_serverBackend || 9999;
 app.listen(PORT, '0.0.0.0', () => {

@@ -1,0 +1,1 @@
+fix lỗi thêm ở trang chủ lớn hơn số lượng hàng đang có lớn hơn hoặc bằng số lượng hàng -5

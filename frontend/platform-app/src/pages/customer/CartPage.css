@@ -1,0 +1,33 @@
+.cart-page .quantity-control {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.cart-page .quantity-control button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.cart-page .quantity-control button:hover {
+    background: #e9ecef;
+}
+
+.cart-page .summary-card {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef !important;
+}
+
+.cart-page .list-group-item {
+    transition: background-color 0.2s ease;
+}
+
+.cart-page .list-group-item:hover {
+    background-color: #fafbfc;
+}

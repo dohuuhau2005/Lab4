@@ -14,14 +14,7 @@ router.post('/', async (req, res) => {
         request.input('Email', sql.VarChar, email);
 
         // Query lấy thông tin user
-        const query = `SELECT [User].id_user as IdUser, email as Email, password as Password, 
-                                        salt as Salt, is_locked as IsLocked, id_staff as IdStaff,
-                                        Position as position, role as Role 
-                                 FROM [User] 
-                                 LEFT JOIN Staff ON [User].id_user = Staff.id_user 
-                                 LEFT JOIN Company ON [User].id_user = Company.id_user 
-                                 LEFT JOIN Customer ON [User].id_user = Customer.id_user 
-                                 WHERE [User].email = @Email`
+        const query = `exec sp_GetUserByEmail @Email`;
         const result = await request.query(query);
 
         if (result.recordset.length > 0) {
@@ -37,11 +30,11 @@ router.post('/', async (req, res) => {
             }
 
             // Lấy thông tin từ DB
-            const MaNV = user.IdStaff;
+            const MaNV = user.StaffId;
             const salt = user.Salt;
-            const emailpassDB = String(user.Password).trim();
+            const emailpassDB = String(user.PasswordHash).trim();
             const role = user.Role; // Lấy quyền (Admin/Staff)
-            const position = user.position;
+            const position = user.Position;
             const id = user.IdUser;
             const email = user.Email;
             // Xử lý hash password để so sánh
@@ -64,6 +57,20 @@ router.post('/', async (req, res) => {
                         process.env.JWT_SECRET,
                         { expiresIn: '1h' }
                     );
+                    return res.status(200).json({
+                        token: token,
+                        role: role,
+                        position: position,
+                        isLocked: false,
+                        success: true,
+                        message: "Đăng nhập thành công",
+                        id: id,
+                        MaNV: MaNV,
+                        email: email,
+                        FirstName: user.FirstName,
+                        LastName: user.LastName,
+
+                    });
                 } else {
                     token = jwt.sign(
                         { id: id, email: email, role: role, position: position },
@@ -75,18 +82,41 @@ router.post('/', async (req, res) => {
 
 
                 console.log("Role gửi đi:", role);
+                console.log("Position gửi đi:", position);
+                console.log("FirstName gửi đi:", user.FirstName);
+                console.log("LastName gửi đi:", user.LastName);
+                if (user.DeliverySystemId != null) {
+                    console.log("DeliverySystemId gửi đi:", user.DeliverySystemId);
+                    return res.status(200).json({
+                        token: token,
+                        role: role,
 
-                // --- TRẢ VỀ KẾT QUẢ KÈM ROLE CHO JAVA ---
+                        isLocked: false,
+                        success: true,
+                        message: "Đăng nhập thành công",
+                        id: id,
+                        MaNV: MaNV,
+                        email: email,
+                        FirstName: user.FirstName,
+
+                        DeliverySystemId: user.DeliverySystemId
+
+                    });
+                }
+                // --- TRẢ VỀ KẾT QUẢ customer ---
                 return res.status(200).json({
                     token: token,
                     role: role,
-                    position: position,
+
                     isLocked: false,
                     success: true,
                     message: "Đăng nhập thành công",
                     id: id,
-                    MaNV: MaNV,
-                    email: email
+
+                    email: email,
+                    FirstName: user.FirstName,
+                    LastName: user.LastName,
+
                 });
 
             } else {
@@ -102,6 +132,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ error: 'Lỗi server' });
     }
 });
+
 
 router.get('/protected', (req, res) => {
     res.json({ message: 'This is a protected route', userId: req.userId });

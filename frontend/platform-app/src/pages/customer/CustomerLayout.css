@@ -1,0 +1,136 @@
+body {
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background-color: #f5f5f5;
+    /* Màu nền xám nhạt đặc trưng của Shopee/Lazada */
+}
+
+.customer-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.customer-header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-logo {
+    text-decoration: none;
+    font-size: 24px;
+    font-weight: 800;
+    color: #ff5722;
+    /* Cam Shopee vibes */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header-logo span {
+    color: #2c3e50;
+}
+
+.header-nav {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: #ff5722;
+}
+
+.nav-link.active {
+    color: #ff5722;
+    border-bottom: 2px solid #ff5722;
+    padding-bottom: 4px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.action-btn {
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.cart-btn {
+    background-color: #fef0eb;
+    color: #ff5722;
+    position: relative;
+}
+
+.cart-badge {
+    background: #e74c3c;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+}
+
+.login-btn {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.login-btn:hover {
+    background-color: #1a252f;
+}
+
+.customer-main {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+.customer-footer {
+    text-align: center;
+    padding: 24px;
+    background: #ffffff;
+    color: #888;
+    margin-top: auto;
+}
+
+.logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}

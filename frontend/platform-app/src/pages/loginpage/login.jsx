@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./Login.css"; // Nhớ import file CSS nhé
 
 export function Login() {
     const [email, setEmail] = useState("");
@@ -16,11 +17,18 @@ export function Login() {
             const data = res.data;
             if (data.success) {
                 localStorage.setItem("token", data.token);
+                localStorage.setItem("user", JSON.stringify(data));
                 if (data.role === "STAFF" && data.position === "ADMIN") {
                     navigate("/admin/categories");
                 } else if (data.role === "COMPANY") {
                     navigate("/company/products");
-                } else {
+                } else if (data.role === "CUSTOMER") {
+                    navigate("/customer/products");
+                }
+                else if (data.role === "DELIVERY") {
+                    navigate("/delivery/offer");
+                }
+                else {
                     setMessage("Không xác định quyền đăng nhập");
                 }
             } else {
@@ -32,20 +40,47 @@ export function Login() {
     };
 
     return (
-        <div className="login-container">
-            <h2>Đăng nhập</h2>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>Email:</label>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+        <div className="login-page">
+            <div className="login-card">
+                <div className="login-header">
+                    <h2>Chào mừng trở lại!</h2>
+                    <p>Đăng nhập để quản lý cửa hàng của bạn</p>
                 </div>
-                <div>
-                    <label>Password:</label>
-                    <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
-                </div>
-                <button type="submit">Đăng nhập</button>
-            </form>
-            {message && <div className="message">{message}</div>}
+
+                <form onSubmit={handleSubmit} className="login-form">
+                    <div className="input-group">
+                        <label>Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="Nhập email của bạn..."
+                            required
+                        />
+                    </div>
+
+                    <div className="input-group">
+                        <label>Mật khẩu</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="Nhập mật khẩu..."
+                            required
+                        />
+                    </div>
+
+                    <button type="submit" className="login-button">
+                        Đăng nhập
+                    </button>
+                </form>
+
+                {message && (
+                    <div className="login-message">
+                        {message}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
