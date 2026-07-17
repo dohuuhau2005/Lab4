@@ -1,1 +1,2 @@
 fix lỗi thêm ở trang chủ lớn hơn số lượng hàng đang có lớn hơn hoặc bằng số lượng hàng -5
+product sau khi sửa thì xóa chính nó trong cache sau đó query nó lại và cache lại 

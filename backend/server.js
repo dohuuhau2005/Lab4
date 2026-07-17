@@ -15,7 +15,7 @@ const corsOptions = {
         }
     },
     credentials: true, // Bắt buộc phải có để nhận Cookie/Authorization header
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     optionsSuccessStatus: 204 // Một số trình duyệt cũ (IE11) yêu cầu 204 thay vì 200
 };
@@ -40,6 +40,9 @@ app.use('/admin', require("./src/APIs/voucher"))
 app.use('/cache', require("./src/APIs/getCache"))
 app.use('/delivery', require("./src/APIs/offer"))
 app.use('/customer', require("./src/APIs/cart"))
+
+
+app.use('/image', require("./src/APIs/image"))
 
 const PORT = process.env.port_serverBackend || 9999;
 app.listen(PORT, '0.0.0.0', () => {

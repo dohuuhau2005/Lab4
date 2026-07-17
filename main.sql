@@ -39,8 +39,8 @@ select *
 from categories
 select *
 from Product
-
-
+select * from Voucher
+alter table voucher add voucher_status int
 insert into [User]
     (id_user,password,salt,role,email)
 values
@@ -66,7 +66,7 @@ CREATE TABLE Voucher
     name NVARCHAR(30),
     discount INT,
     type VARCHAR(20),
-    is_Locked BIT
+    voucher_status int
 );
 
 -- =============================================
@@ -337,9 +337,9 @@ end
 
 exec sp_select_particular_product 4
 
-
+drop proc sp_select_particular_product_admin
 go
-ALTER PROC sp_select_particular_product_admin
+create PROC sp_select_particular_product_admin
     @id_product BIGINT
 AS
 BEGIN
@@ -355,7 +355,7 @@ BEGIN
         P.description,
         P.meta_title,
         P.id_chunk,
-
+		P.weight,
         Img.List_id_img,
         Img.list_images,
 
@@ -514,3 +514,5 @@ GO
 exec sp_GetUserByEmail 'dev@gmail.com'
 select * from DeliverySystem
 exec sp_select_particular_product_admin 4
+select * from Product
+update Product set name_product=N'Áo sơ mi'where id_product=4

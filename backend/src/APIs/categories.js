@@ -64,4 +64,40 @@ router.put("/categories/:id", async (req, res) => {
         console.error("lỗi lấy danh sách danh mục ", error);
     }
 })
+
+// xóa categories ở 1 product
+router.delete("/categoriesProduct/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { id_categories } = req.query;
+        const pool = await db.GetManh1DBPool();
+        const request = pool.request();
+        const query = `delete from CategoriesDetails where id_product=@id and id_categories=@id_categories`;
+        request.input("id", sql.Int, parseInt(id));
+        request.input("id_categories", sql.Int, parseInt(id_categories));
+        const result = await request.query(query);
+        res.status(200).json({ message: `đã xóa categories ${id} thành công` });
+    }
+    catch (error) {
+        console.error("lỗi xóa categories ", error);
+    }
+}
+);
+//Thêm categories vào 1 product
+router.post("/categoriesProduct/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { id_categories } = req.body;
+        const pool = await db.GetManh1DBPool();
+        const request = pool.request();
+        const query = `insert into CategoriesDetails (id_product, id_categories) values (@id, @id_categories)`;
+        request.input("id", sql.Int, parseInt(id));
+        request.input("id_categories", sql.Int, parseInt(id_categories));
+        const result = await request.query(query);
+        res.status(200).json({ message: `đã thêm categories ${id_categories} vào product ${id} thành công` });
+    }
+    catch (error) {
+        console.error("lỗi thêm categories ", error);
+    }
+})
 module.exports = router;

@@ -16,7 +16,7 @@ router.post("/voucher", async (req, res) => {
             name,
             discount,
             type,
-            is_Locked
+            voucher_status
         } = req.body;
 
         const pool = await db.GetManh1DBPool();
@@ -29,7 +29,7 @@ router.post("/voucher", async (req, res) => {
         request.input("name", sql.NVarChar(30), name);
         request.input("discount", sql.Int, discount);
         request.input("type", sql.VarChar(20), type);
-        request.input("is_Locked", sql.Bit, is_Locked);
+        request.input("voucher_status", sql.Int, voucher_status);
 
         const query = `
             INSERT INTO Voucher
@@ -41,7 +41,7 @@ router.post("/voucher", async (req, res) => {
                 name,
                 discount,
                 type,
-                is_Locked
+                voucher_status
             )
             VALUES
             (
@@ -52,7 +52,7 @@ router.post("/voucher", async (req, res) => {
                 @name,
                 @discount,
                 @type,
-                @is_Locked
+                @voucher_status
             )
         `;
 
@@ -116,7 +116,7 @@ router.put("/voucher/:id", async (req, res) => {
             name,
             discount,
             type,
-            is_Locked
+            voucher_status
         } = req.body;
 
         const pool = await db.GetManh1DBPool();
@@ -129,7 +129,7 @@ router.put("/voucher/:id", async (req, res) => {
         request.input("name", sql.NVarChar(30), name);
         request.input("discount", sql.Int, discount);
         request.input("type", sql.VarChar(20), type);
-        request.input("is_Locked", sql.Bit, is_Locked);
+        request.input("voucher_status", sql.Int, voucher_status);
 
         const query = `
             UPDATE Voucher
@@ -140,7 +140,7 @@ router.put("/voucher/:id", async (req, res) => {
                 name = @name,
                 discount = @discount,
                 type = @type,
-                is_Locked = @is_Locked
+                voucher_status = @voucher_status
             WHERE id_voucher = @id
         `;
 
@@ -177,7 +177,7 @@ router.delete("/voucher/:id", async (req, res) => {
 
         const query = `
             update Voucher
-            SET is_Locked = 1
+            SET voucher_status = -1
             WHERE id_voucher = @id
         `;
 
