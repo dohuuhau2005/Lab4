@@ -63,10 +63,11 @@ CREATE TABLE Voucher
     quantities INT,
     time_deploy DATETIME,
     time_end DATETIME,
+	time_exp datetime,
     name NVARCHAR(30),
     discount INT,
     type VARCHAR(20),
-    voucher_status int
+    voucher_status int -- 0 : pending 1 : deploy , -1 : locked , 2 : active
 );
 
 -- =============================================
@@ -109,8 +110,10 @@ CREATE TABLE InfoDelivery
     id_user VARCHAR(26),
     address NVARCHAR(255),
     phone VARCHAR(10),
+	name Nvarchar(200),
     FOREIGN KEY (id_user) REFERENCES [Customer](id_user)
 );
+select  * from Voucher
 
 CREATE TABLE payment
 (
@@ -118,8 +121,12 @@ CREATE TABLE payment
     id_user VARCHAR(26),
     total_price INT,
     status BIT,
+	 id_order INT,
+	 type int,
+	 foreign key (id_order) references [Order] (id_order),
     FOREIGN KEY (id_user) REFERENCES [Customer](id_user)
 );
+
 
 CREATE TABLE Cart
 (
@@ -132,10 +139,11 @@ CREATE TABLE VoucherHunting
     id_user VARCHAR(26),
     id_voucher VARCHAR(10),
     PRIMARY KEY (id_user, id_voucher),
+	Active INT DEFAULT 1,
     FOREIGN KEY (id_user) REFERENCES [Customer](id_user),
     FOREIGN KEY (id_voucher) REFERENCES Voucher(id_voucher)
 );
-
+select * from Voucher
 -- =============================================
 -- 3. TẠO CÁC BẢNG CẤP 2 VÀ CẤP 3
 -- =============================================
@@ -206,12 +214,26 @@ CREATE TABLE [Order]
     id_order INT PRIMARY KEY IDENTITY(1,1),
     id_user VARCHAR(26),
     total_price INT,
-    status BIT,
-    id_payment VARCHAR(30),
+    status int,--( 0 : chờ xác nhận , 1 : đã xác nhận, 2 : đang giao hàng , 3 : giao hàng thành công, -1: hủy đơn )
+    id_delivery_system int,
+	address NVARCHAR(255),
+	phone VARCHAR(10),
+	name Nvarchar(200),
+	 id_voucher VARCHAR(10) NULL,
     FOREIGN KEY (id_user) REFERENCES [Customer](id_user),
-    FOREIGN KEY (id_payment) REFERENCES payment(id_payment)
-);
+    FOREIGN KEY (id_delivery_system) REFERENCES [DeliverySystem](id_delivery_system)
+);update [Order] set status=0
+select * from [Order]
+select * from payment
+select * from VoucherHunting
+update VoucherHunting set Active=1
+alter table [Order] add 
+-- Thêm cột Active vào bảng voucher_hunting (Mặc định là 1)
+update  VoucherHunting set Active = 1 
 
+-- Thêm cột id_voucher vào bảng Order (kiểu dữ liệu tùy bro thiết kế, tui ví dụ VARCHAR)
+ALTER TABLE [Order] ADD
+alter table [Order] add  
 CREATE TABLE Order_details
 (
     id_order_detail BIGINT PRIMARY KEY IDENTITY(1,1),
@@ -516,3 +538,59 @@ select * from DeliverySystem
 exec sp_select_particular_product_admin 4
 select * from Product
 update Product set name_product=N'Áo sơ mi'where id_product=4
+select distinct p.id_product,
+                        p.name_product,
+                        p.old_price,
+                        p.new_price,
+                        p.thumbnail,
+                        p.quantities,
+                        p.status
+                    FROM Product p
+                    INNER JOIN CategoriesDetails cd
+                        ON p.id_product = cd.id_product
+             
+                    ORDER BY p.id_product DESC
+
+
+SELECT v.discount,v.name,v.time_exp  FROM VoucherHunting join Voucher v on v.id_voucher= VoucherHunting.id_voucher WHERE id_user = 'cus1'
+CREATE PROCEDURE sp_GetDeliveryOptions
+    @TotalWeight INT, -- Khối lượng đơn hàng (VD: 2500 gram)
+    @IsInternal BIT   -- 1: Nội thành, 0: Ngoại thành
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Dùng CTE (Common Table Expression) để tính toán bảng giá thô trước
+    WITH RawPrices AS (
+        SELECT 
+            ds.id_delivery_system,
+            ds.name AS DeliveryCompanyName,
+            dp.time_delivery,
+            -- Xác định giá nền (Base Price) tùy theo nội hay ngoại thành
+            CASE WHEN @IsInternal = 1 THEN dp.internal_price ELSE dp.external_price END AS BasePrice,
+            
+            -- Tính khối lượng vượt mức (nếu có)
+            CASE WHEN @TotalWeight > dp.max_weight THEN (@TotalWeight - dp.max_weight) ELSE 0 END AS OverWeight,
+            
+            dp.over_weight_price
+        FROM DeliverySystem ds
+        INNER JOIN DeliveryPrice dp ON ds.id_delivery_system = dp.id_delivery_system
+        -- Điều kiện lấy đúng nấc giá (Tier) mà khối lượng giỏ hàng chạm tới
+        -- (Giả sử 1 công ty có nhiều nấc min - max khác nhau)
+        WHERE @TotalWeight >= dp.min_weight
+    )
+    
+    -- Trả về kết quả cuối cùng đã tính toán và sắp xếp
+    SELECT 
+        id_delivery_system,
+        DeliveryCompanyName,
+        time_delivery,
+        
+        -- Công thức: Giá nền + (Số kg vượt mức * Giá vượt mức)
+        -- Dùng hàm CEILING để làm tròn lên (VD: lố 100g vẫn tính là 1 block tiền phạt)
+        -- Ở đây giả định mỗi block quá ký tính theo 1000g (1kg)
+        (BasePrice + (CEILING(CAST(OverWeight AS FLOAT) / 1000) * over_weight_price)) AS FinalShipPrice
+        
+    FROM RawPrices
+    ORDER BY FinalShipPrice ASC; -- Sắp xếp từ rẻ nhất đến mắc nhất để UI dễ render
+END

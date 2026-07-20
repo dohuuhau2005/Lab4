@@ -40,7 +40,12 @@ app.use('/admin', require("./src/APIs/voucher"))
 app.use('/cache', require("./src/APIs/getCache"))
 app.use('/delivery', require("./src/APIs/offer"))
 app.use('/customer', require("./src/APIs/cart"))
-
+app.use('/customer', require("./src/APIs/customerVoucher"))
+app.use('/customer', require("./src/APIs/customerOffer"))
+app.use('/delivery', require("./src/APIs/deliveryInfo"))
+app.use('/customer', require("./src/APIs/checkout"))
+app.use('/customer/orders', require("./src/APIs/orderHistory"))
+app.use('/management/orders', require("./src/APIs/orderManagement"))
 
 app.use('/image', require("./src/APIs/image"))
 

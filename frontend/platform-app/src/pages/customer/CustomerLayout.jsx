@@ -43,8 +43,11 @@ export default function CustomerLayout() {
                             Trang chủ
                         </NavLink>
 
-                        <NavLink to="/customer/vouchers" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                        <NavLink to="/customer/products/hunt-voucher" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
                             🔥 Săn Voucher
+                        </NavLink>
+                        <NavLink to="/customer/order-history" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+                            Lịch sử đơn hàng
                         </NavLink>
                     </nav>
 

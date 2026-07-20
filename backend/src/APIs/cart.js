@@ -180,7 +180,7 @@ router.get("/cart/:id_user", async (req, res) => {
                     p.thumbnail,
                     p.new_price,
                     p.old_price,
-
+                    p.weight,
                     p.quantities as stock_quantity,
                     (cd.quantities *
                      p.new_price)

@@ -58,6 +58,11 @@ export default function AdminLayout() {
                 Quản lý Voucher
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/admin/orders" className={({ isActive }) => isActive ? "active" : ""}>
+                Quản lý Đơn hàng
+              </NavLink>
+            </li>
           </ul>
         </nav>
 

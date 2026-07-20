@@ -212,7 +212,7 @@ export default function CartPage() {
                             <button
                                 className="btn btn-primary w-100 py-3 fw-bold fs-5 rounded-3"
                                 disabled={cartItems.length === 0}
-                                onClick={() => alert("Chuyển sang trang Checkout...")}
+                                onClick={() => window.location.assign('/customer/checkout')}
                             >
                                 THANH TOÁN
                             </button>
