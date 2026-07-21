@@ -63,6 +63,11 @@ export default function AdminLayout() {
                 Quản lý Đơn hàng
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/admin/dashboard" className={({ isActive }) => isActive ? "active" : ""}>
+                Bảng Thống kê
+              </NavLink>
+            </li>
           </ul>
         </nav>
 

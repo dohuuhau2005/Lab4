@@ -46,7 +46,7 @@ app.use('/delivery', require("./src/APIs/deliveryInfo"))
 app.use('/customer', require("./src/APIs/checkout"))
 app.use('/customer/orders', require("./src/APIs/orderHistory"))
 app.use('/management/orders', require("./src/APIs/orderManagement"))
-
+app.use('/management/dashboard', require("./src/APIs/dashboardAPI"))
 app.use('/image', require("./src/APIs/image"))
 
 const PORT = process.env.port_serverBackend || 9999;

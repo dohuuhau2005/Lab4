@@ -219,6 +219,7 @@ CREATE TABLE [Order]
 	address NVARCHAR(255),
 	phone VARCHAR(10),
 	name Nvarchar(200),
+	created_at DATETIME DEFAULT GETDATE(),
 	 id_voucher VARCHAR(10) NULL,
     FOREIGN KEY (id_user) REFERENCES [Customer](id_user),
     FOREIGN KEY (id_delivery_system) REFERENCES [DeliverySystem](id_delivery_system)
@@ -594,3 +595,161 @@ BEGIN
     FROM RawPrices
     ORDER BY FinalShipPrice ASC; -- Sắp xếp từ rẻ nhất đến mắc nhất để UI dễ render
 END
+
+CREATE OR ALTER PROC sp_exp_voucher
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+            
+            -- Bước 1: Thu hồi voucher hết hạn khỏi ví của user
+            DELETE FROM VoucherHunting 
+            WHERE id_voucher IN (
+                SELECT id_voucher FROM Voucher 
+                WHERE time_exp <= GETDATE() AND voucher_status != -1
+            );
+
+            -- Bước 2: Cập nhật trạng thái khóa (-1) trên bảng chính
+            UPDATE Voucher 
+            SET voucher_status = -1 
+            WHERE time_exp <= GETDATE() AND voucher_status != -1;
+            
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        -- Nếu bro có bảng lưu log lỗi, có thể hứng ở đây:
+        -- INSERT INTO SystemLogs (LogMessage, CreatedAt) VALUES (ERROR_MESSAGE(), GETDATE());
+    END CATCH;
+END;
+
+
+-- Dành cho Step của Job Active Voucher
+CREATE OR ALTER PROC sp_active_voucher
+AS
+BEGIN
+    UPDATE Voucher 
+    SET voucher_status = 2 
+    WHERE time_end <= GETDATE() AND voucher_status = 1;
+END;
+
+
+
+CREATE OR ALTER PROC sp_admin_dashboard_stats
+    @StartDate DATETIME = NULL,
+    @EndDate DATETIME = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 0. Xử lý logic ngày tháng (Nếu không truyền vào thì mặc định lấy tháng hiện tại)
+    IF @StartDate IS NULL 
+        SET @StartDate = DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0); -- Ngày đầu tháng
+    IF @EndDate IS NULL 
+        SET @EndDate = GETDATE(); -- Ngày hiện tại
+
+    -- =================================================================
+    -- RESULT SET 1: TỔNG QUAN KPI (Dành cho các thẻ Card trên cùng)
+    -- =================================================================
+    SELECT
+        (SELECT COUNT(*) FROM Customer) AS TotalCustomers,
+        (SELECT COUNT(*) FROM DeliverySystem) AS TotalDeliverySystems,
+        (SELECT COUNT(*) FROM Product) AS TotalProducts,
+        
+        -- Thống kê Đơn hàng trong khoảng thời gian
+        (SELECT COUNT(*) FROM [Order] 
+         WHERE created_at BETWEEN @StartDate AND @EndDate) AS TotalOrdersPeriod,
+         
+        (SELECT COUNT(*) FROM [Order] 
+         WHERE status = 3 AND created_at BETWEEN @StartDate AND @EndDate) AS TotalSuccessOrders,
+         
+        (SELECT COUNT(*) FROM [Order] 
+         WHERE status = -1 AND created_at BETWEEN @StartDate AND @EndDate) AS TotalFailedOrders,
+         
+        -- Doanh thu (Chỉ tính đơn giao thành công)
+        (SELECT ISNULL(SUM(total_price), 0) FROM [Order] 
+         WHERE status = 3 AND created_at BETWEEN @StartDate AND @EndDate) AS TotalRevenue;
+
+
+    -- =================================================================
+    -- RESULT SET 2: THỐNG KÊ THEO NGÀY (Dành cho biểu đồ Line/Bar chart)
+    -- =================================================================
+    SELECT 
+        CAST(created_at AS DATE) AS OrderDate,
+        COUNT(id_order) AS TotalOrders,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS SuccessOrders,
+        SUM(CASE WHEN status = -1 THEN 1 ELSE 0 END) AS FailedOrders,
+        SUM(CASE WHEN status = 3 THEN total_price ELSE 0 END) AS DailyRevenue
+    FROM [Order]
+    WHERE created_at BETWEEN @StartDate AND @EndDate
+    GROUP BY CAST(created_at AS DATE)
+    ORDER BY OrderDate ASC;
+
+
+    -- =================================================================
+    -- RESULT SET 3: HIỆU SUẤT ĐƠN VỊ VẬN CHUYỂN (Thấy đơn vị nào hay làm hỏng đơn)
+    -- =================================================================
+    SELECT 
+        ds.id_delivery_system,
+        ds.name AS DeliveryName,
+        COUNT(o.id_order) AS TotalAssignedOrders,
+        SUM(CASE WHEN o.status = 3 THEN 1 ELSE 0 END) AS SuccessDeliveries,
+        SUM(CASE WHEN o.status = -1 THEN 1 ELSE 0 END) AS FailedDeliveries,
+        -- Tính tỷ lệ thành công (ẩn lỗi chia cho 0)
+        CASE 
+            WHEN COUNT(o.id_order) = 0 THEN 0 
+            ELSE CAST(SUM(CASE WHEN o.status = 3 THEN 1 ELSE 0 END) * 100.0 / COUNT(o.id_order) AS DECIMAL(5,2)) 
+        END AS SuccessRatePercent
+    FROM DeliverySystem ds
+    LEFT JOIN [Order] o ON ds.id_delivery_system = o.id_delivery_system 
+        AND o.created_at BETWEEN @StartDate AND @EndDate
+    GROUP BY ds.id_delivery_system, ds.name
+    ORDER BY TotalAssignedOrders DESC;
+
+END;
+
+--cách xài
+const result = await pool.request()
+    .input('StartDate', sql.DateTime, '2026-07-01') // Có thể truyền null
+    .input('EndDate', sql.DateTime, '2026-07-31')   // Có thể truyền null
+    .execute('sp_admin_dashboard_stats');
+
+const kpiData = result.recordsets[0][0];      // Object tổng quan KPI
+const chartData = result.recordsets[1];       // Mảng vẽ biểu đồ doanh thu theo ngày
+const deliveryStats = result.recordsets[2];   // Mảng thống kê hiệu suất giao hàng
+
+select * from [order]
+update [order] set created_at = GETDATE()
+select * from voucher
+
+
+
+-- 1. Dọn dẹp data test cũ (nếu có) để tránh lỗi trùng khóa chính
+DELETE FROM VoucherHunting WHERE id_voucher = 'TESTEXP';
+DELETE FROM Voucher WHERE id_voucher = 'TESTEXP';
+
+-- 2. Tạo Voucher mới (Hết hạn vào đúng 15:49:00 ngày 21/07/2026)
+INSERT INTO Voucher (
+    id_voucher, quantities, time_deploy, time_end, time_exp, 
+    name, discount, type, voucher_status
+)
+VALUES (
+    'TESTEXP', 
+    100, 
+    '2026-07-21 16:06:00', -- Giả sử đã phát hành lúc 3 giờ chiều
+    '2026-07-21 16:08:00', -- Hạn thu thập
+    '2026-07-21 16:09:00', -- HẠN SỬ DỤNG: 15:49:00 (chờ 2 phút)
+    N'Voucher Test Hết Hạn', 
+    50000, 
+    'CASH', 
+    0 -- Đang Active
+);
+
+-- 3. Phát voucher này cho user Cus1 vào ví
+INSERT INTO VoucherHunting (id_user, id_voucher, Active)
+VALUES ('Cus1', 'TESTEXP', 1);
+
+-- 4. Xem lại ví của Cus1 TRƯỚC KHI hết hạn (Sẽ thấy có voucher TESTEXP)
+SELECT * FROM VoucherHunting WHERE id_user = 'Cus1';
+SELECT * FROM Voucher WHERE id_voucher = 'TESTEXP';
+select * from [Order_details]

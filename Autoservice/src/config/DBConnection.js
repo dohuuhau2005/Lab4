@@ -10,6 +10,7 @@ const dbConfigManh1 = {
     options: {
         encrypt: true, // bắt buộc nếu dùng Azure
         trustServerCertificate: true, // cần thiết cho local SQL Server
+        useUTC: false
     },
     pool: {
         max: 10,
@@ -28,6 +29,7 @@ const dbConfigManhlocal1 = {
     options: {
         encrypt: true, // bắt buộc nếu dùng Azure
         trustServerCertificate: true, // cần thiết cho local SQL Server
+        useUTC: false
     },
     pool: {
         max: 10,
